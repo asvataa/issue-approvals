@@ -1,0 +1,35 @@
+---
+name: Issue Approvals
+description: Get approvals from issue
+author: asvataa
+
+branding:
+  icon: alert-circle
+  color: blue
+
+inputs:
+  github_token:
+    description: The GitHub token that can be used to obtain the Issue via API lookup
+    required: true
+
+  issue_number:
+    description: The id of the issue to use to extract a payload from the body
+    required: true
+
+  min_approvals:
+    description: Min count of approvals
+    required: true
+
+  deployed_label:
+    description: deploy flag label
+    required: true
+
+outputs:
+  all_approved:
+    description: true of false
+  approval_count:
+    description: count of approvals
+
+runs:
+  using: node18
+  main: index.js

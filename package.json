@@ -1,0 +1,23 @@
+{
+  "name": "issue-approvals",
+  "version": "1.0.0",
+  "description": "Github Actions package",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/asvataa/issue-approvals.git"
+  },
+  "author": "asvataa",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/asvataa/issue-approvals/issues"
+  },
+  "homepage": "https://github.com/asvataa/issue-approvals#readme",
+  "dependencies": {
+    "@actions/core": "^1.10.1",
+    "@actions/github": "^6.0.0"
+  }
+}
