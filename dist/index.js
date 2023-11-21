@@ -30364,7 +30364,7 @@ async function run() {
     const token = core.getInput('github_token', { required: true });
     const minApprovals = parseInt(core.getInput('min_approvals', { required: true }));
     const deployedLabel = core.getInput('deployed_label', { required: true });
-    const superUser = core.getInput('super_user', { required: true });
+    const superUsers = core.getMultilineInput('super_users', { required: true });
 
     const octokit = github.getOctokit(token);
 
@@ -30383,25 +30383,22 @@ async function run() {
       issue_number: issueNumber,
     });
 
-    const assignees = issue.assignees.map(assignee => assignee.login);
     const approvalWords = ["yes", "ok", "approved"];
-
-    const approvedAssignees = comments.data.filter(comment =>
+    const approvedComments = comments.data.filter(comment =>
       approvalWords.some(word => comment.body.toLowerCase().includes(word))
-    ).map(comment => comment.user.login);
+    );
 
-    let allApproved = false;
-    let approvalCount = assignees.filter(assignee => approvedAssignees.includes(assignee)).length;
+    let allApproved = approvedComments.some(comment => superUsers.includes(comment.user.login));
 
-    if (approvedAssignees.includes(superUser)) {
-      allApproved = true;
-      approvalCount = assignees.length;
-    } else {
+    if (!allApproved) {
+      const assignees = issue.assignees.map(assignee => assignee.login);
+      const approvedAssignees = approvedComments.map(comment => comment.user.login);
+      const approvalCount = assignees.filter(assignee => approvedAssignees.includes(assignee)).length;
+
       allApproved = approvalCount >= minApprovals;
     }
 
     core.setOutput('all_approved', allApproved);
-    core.setOutput('approval_count', approvalCount);
   } catch (error) {
     core.setFailed(`Error in action: ${error.message}`);
   }
