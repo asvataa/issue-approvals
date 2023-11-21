@@ -4,6 +4,7 @@
   "description": "Github Actions package",
   "main": "index.js",
   "scripts": {
+    "build": "npx @vercel/ncc@0.34.0 build index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
