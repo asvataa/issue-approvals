@@ -24,6 +24,10 @@ inputs:
     description: deploy flag label
     required: true
 
+  super_user:
+    description: super user who can approve by him self
+    required: true
+
 outputs:
   all_approved:
     description: true of false
