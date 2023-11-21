@@ -7,6 +7,7 @@ async function run() {
     const token = core.getInput('github_token', { required: true });
     const minApprovals = parseInt(core.getInput('min_approvals', { required: true }));
     const deployedLabel = core.getInput('deployed_label', { required: true });
+    const superUser = core.getInput('super_user', { required: true });
 
     const octokit = github.getOctokit(token);
 
@@ -32,8 +33,15 @@ async function run() {
       approvalWords.some(word => comment.body.toLowerCase().includes(word))
     ).map(comment => comment.user.login);
 
-    const approvalCount = assignees.filter(assignee => approvedAssignees.includes(assignee)).length;
-    const allApproved = approvalCount >= minApprovals;
+    let allApproved = false;
+    let approvalCount = assignees.filter(assignee => approvedAssignees.includes(assignee)).length;
+
+    if (approvedAssignees.includes(superUser)) {
+      allApproved = true;
+      approvalCount = assignees.length;
+    } else {
+      allApproved = approvalCount >= minApprovals;
+    }
 
     core.setOutput('all_approved', allApproved);
     core.setOutput('approval_count', approvalCount);
