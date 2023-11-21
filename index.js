@@ -7,7 +7,7 @@ async function run() {
     const token = core.getInput('github_token', { required: true });
     const minApprovals = parseInt(core.getInput('min_approvals', { required: true }));
     const deployedLabel = core.getInput('deployed_label', { required: true });
-    const superUsers = core.getMultilineInput('super_users', { required: true });
+    const superUsers = core.getInput('super_users', { required: true }).split(',').map(user => user.trim());
 
     const octokit = github.getOctokit(token);
 
