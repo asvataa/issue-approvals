@@ -33,12 +33,37 @@ async function run() {
 
     let allApproved = approvedComments.some(comment => superUsers.includes(comment.user.login));
 
+    const unapprovedAssignees = [];
     if (!allApproved) {
       const assignees = issue.assignees.map(assignee => assignee.login);
       const approvedAssignees = approvedComments.map(comment => comment.user.login);
-      const approvalCount = assignees.filter(assignee => approvedAssignees.includes(assignee)).length;
+      const approvalCount = assignees.filter(assignee => {
+        const isApproved = approvedAssignees.includes(assignee);
+        if (!isApproved) {
+          unapprovedAssignees.push(assignee);
+        }
+        return isApproved;
+      }).length;
 
       allApproved = approvalCount >= minApprovals;
+    }
+
+    if (!allApproved) {
+      const taggedUsers = unapprovedAssignees.map(user => `@${user}`).join(' ');
+      const commentBody = `Not enough approvals. Need attention from: ${taggedUsers}`;
+      await octokit.rest.issues.createComment({
+        ...github.context.repo,
+        issue_number: issueNumber,
+        body: commentBody
+      });
+
+      if (issue.state === 'closed') {
+        await octokit.rest.issues.update({
+          ...github.context.repo,
+          issue_number: issueNumber,
+          state: 'open'
+        });
+      }
     }
 
     core.setOutput('all_approved', allApproved);
