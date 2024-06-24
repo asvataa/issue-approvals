@@ -28,6 +28,10 @@ inputs:
     description: super user who can approve by him self
     required: true
 
+  groups:
+    description: list of groups who must approve the deployment
+    required: true
+
 outputs:
   all_approved:
     description: true of false

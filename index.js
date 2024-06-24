@@ -8,6 +8,7 @@ async function run() {
     const minApprovals = parseInt(core.getInput('min_approvals', { required: true }));
     const deployedLabel = core.getInput('deployed_label', { required: true });
     const superUsers = core.getInput('super_users', { required: true }).split(',').map(user => user.trim());
+    const groupNames = core.getInput('groups', { required: true }).split(',').map(group => group.trim());
 
     const octokit = github.getOctokit(token);
 
@@ -33,24 +34,28 @@ async function run() {
 
     let allApproved = approvedComments.some(comment => superUsers.includes(comment.user.login));
 
-    const unapprovedAssignees = [];
+    const unapprovedGroups = [];
     if (!allApproved) {
-      const assignees = issue.assignees.map(assignee => assignee.login);
-      const approvedAssignees = approvedComments.map(comment => comment.user.login);
-      const approvalCount = assignees.filter(assignee => {
-        const isApproved = approvedAssignees.includes(assignee);
-        if (!isApproved) {
-          unapprovedAssignees.push(assignee);
-        }
-        return isApproved;
-      }).length;
+      for (const group of groupNames) {
+        const { data: groupMembers } = await octokit.rest.teams.listMembersInOrg({
+          org: github.context.repo.owner,
+          team_slug: group,
+        });
 
-      allApproved = approvalCount >= minApprovals;
+        const approvedMembers = approvedComments.map(comment => comment.user.login);
+        const groupApproved = groupMembers.some(member => approvedMembers.includes(member.login));
+
+        if (!groupApproved) {
+          unapprovedGroups.push(group);
+        }
+      }
+
+      allApproved = unapprovedGroups.length === 0;
     }
 
     if (!allApproved) {
-      const taggedUsers = unapprovedAssignees.map(user => `@${user}`).join(' ');
-      const commentBody = `Not enough approvals. Need attention from: ${taggedUsers}`;
+      const taggedGroups = unapprovedGroups.map(group => `@${group}`).join(' ');
+      const commentBody = `Not enough approvals. Need attention from groups: ${taggedGroups}`;
       await octokit.rest.issues.createComment({
         ...github.context.repo,
         issue_number: issueNumber,
